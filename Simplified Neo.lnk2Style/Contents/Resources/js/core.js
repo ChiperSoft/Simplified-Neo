@@ -2,6 +2,7 @@ StyleCore = {
 	last_message_nick:'',
 	last_message_node:null,
 	ready:false,
+	TOTAL_COLORS:20,
 	
 	settings: {
 		CombinedMessages:false,
@@ -29,6 +30,21 @@ StyleCore = {
 		msgTopicDetailsReply:	new Template('Set by <span class="nick">#{nick}</span> on <span class="date">#{extra}</span>'),
 		msgNotice:				new Template('<span class="gutter nick">#{nick}</span><i>#{description}</i>'),
 		msgNoticeAuth:			new Template('#{description}'),
+	},
+	
+	hashColor:function (str) {
+		//Color hashing courtesy of the Whisper style.
+		var h = 0;
+		for (i = 0; i < str.length; i++) {
+			h += str.charCodeAt(i);
+			h += (h << 10);
+			h ^= (h >> 6);
+		}
+	
+		h += h << 3;
+		h ^= h >> 11;
+		h += h << 15;
+		return Math.abs(h % this.TOTAL_COLORS);
 	},
 	
 	e_ready:function (event) {
@@ -65,7 +81,7 @@ StyleCore = {
 		node.id = args.id;
 	    node.className = [
 			args.type,
-			'usercolor-' + args.nick_color,
+			'usercolor-' + (args.nick_color && args.nick_userhost?this.hashColor(args.nick_userhost):args.nick_color),
 			args.direction ? 'outgoing' : 'incoming',
 			args.highlight ? 'highlight' : 'nohighlight',
 			args.starred ? 'starred' : 'nostarred',
