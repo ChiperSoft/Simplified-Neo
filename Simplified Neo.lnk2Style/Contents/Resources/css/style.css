@@ -236,7 +236,9 @@ li.highlight {
 	color: #ccc !important;
 }
 
-
+li.highlight .contents .nick {
+	color:#988C00;
+}
 
 .incoming .nick {
 	color: #0080FF;
@@ -319,15 +321,15 @@ li.msgNotice.spotlight {
 /* NICK COLORS                                                                */
 /* ========================================================================== */
 
-li.usercolor-1 .nick { color: #0080ff; }
-li.usercolor-2 .nick { color: #00DF00; }
-li.usercolor-3 .nick { color: #ff0080; }
-li.usercolor-4 .nick { color: #dd00ff; }
-li.usercolor-5 .nick { color: #76E0BD; }
-li.usercolor-6 .nick { color: #7F4FFF; }
-li.usercolor-7 .nick { color: #8BC100; }
-li.usercolor-8 .nick { color: #cc66ff; }
-li.usercolor-9 .nick { color: #F53E35; }
+li.usercolor-1 .nick  { color: #0080ff; }
+li.usercolor-2 .nick  { color: #00DF00; }
+li.usercolor-3 .nick  { color: #ff0080; }
+li.usercolor-4 .nick  { color: #dd00ff; }
+li.usercolor-5 .nick  { color: #76E0BD; }
+li.usercolor-6 .nick  { color: #7F4FFF; }
+li.usercolor-7 .nick  { color: #8BC100; }
+li.usercolor-8 .nick  { color: #cc66ff; }
+li.usercolor-9 .nick  { color: #F53E35; }
 li.usercolor-10 .nick { color: #6F42BC; }
 li.usercolor-11 .nick { color: #008080; }
 li.usercolor-12 .nick { color: #904000; }
