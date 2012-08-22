@@ -3,6 +3,8 @@ StyleCore = {
 	last_message_node:null,
 	ready:false,
 	TOTAL_COLORS:20,
+	messageQueue: [],
+	messageQueueTask: null,
 	
 	settings: {
 		CombinedMessages:false,
@@ -75,56 +77,75 @@ StyleCore = {
 	e_appendMessage:function (event) {
 		var args = event.memo;
 
+		this.messageQueue.push(args);
+		if (!!this.messageQueueTask) {
+			this.messageQueueTask.reset()
+		} else {
+			this.messageQueueTask = Timed.after(300, function () {
+				var fragment = document.createDocumentFragment();
+				
+				while (this.messageQueue.length) {
+					args = this.messageQueue.shift();
+				
+					//BUILD MESSAGE NODE
+					var node = new Element('li');
+					node.id = args.id;
+				    node.className = [
+						args.type,
+						'usercolor-' + (args.nick_color && args.nick_userhost?this.hashColor(args.nick_userhost):args.nick_color),
+						args.direction ? 'outgoing' : 'incoming',
+						args.highlight ? 'highlight' : 'nohighlight',
+						args.starred ? 'starred' : 'nostarred',
+						args.embed ? 'embed' : 'noembed',
+						args.unencrypted ? 'unencrypted' : '',
 
-		//BUILD MESSAGE NODE
-		var node = new Element('li');
-		node.id = args.id;
-	    node.className = [
-			args.type,
-			'usercolor-' + (args.nick_color && args.nick_userhost?this.hashColor(args.nick_userhost):args.nick_color),
-			args.direction ? 'outgoing' : 'incoming',
-			args.highlight ? 'highlight' : 'nohighlight',
-			args.starred ? 'starred' : 'nostarred',
-			args.embed ? 'embed' : 'noembed',
-			args.unencrypted ? 'unencrypted' : '',
+						'grouping-' + (args.type === 'msgMessage' && (args.nick === this.last_message_nick ? 'next' : 'first')) ,
 
-			'grouping-' + (args.type === 'msgMessage' && (args.nick === this.last_message_nick ? 'next' : 'first')) ,
+						args.nick_userhost ? 'userhost' : 'server',
+						args.nick_userhost && Spotlight.isCurrent(args.nick_userhost) ? 'spotlight' : '',
+						/^msg(?:Message|Action|Notice)$/.test( args.type ) ? 'user' : 'system'
+				    ].join(' ');
 
-			args.nick_userhost ? 'userhost' : 'server',
-			args.nick_userhost && Spotlight.isCurrent(args.nick_userhost) ? 'spotlight' : '',
-			/^msg(?:Message|Action|Notice)$/.test( args.type ) ? 'user' : 'system'
-	    ].join(' ');
+					node.setAttribute('data-nick', args.nick);
+					node.setAttribute('data-userhost', args.nick_userhost);
 
-		node.setAttribute('data-nick', args.nick);
-		node.setAttribute('data-userhost', args.nick_userhost);
+					this.last_message_nick = args.type === 'msgMessage' ? args.nick : '';
+					this.last_message_node = node;
 
-		this.last_message_nick = args.type === 'msgMessage' ? args.nick : '';
-		this.last_message_node = node;
-		
-		//PREPARE DESCRIPTION
-		args.description = (function (text) {
-			// Un-escape non-breaking spaces in text.
-		    text = text.replace( /&nbsp;/g, ' ' );
+					//PREPARE DESCRIPTION
+					args.description = (function (text) {
+						// Un-escape non-breaking spaces in text.
+					    text = text.replace( /&nbsp;/g, ' ' );
 
-			// Process links in text.
-			text = linkify( text, { callback: function( text, href ) {
-				if ( href ) { // Link.
-					if ( href !== text ) text = '<a href="' + href + '" title="Link is ' + href + '">' + text + '</a>';
-					else text = '<a href="' + href + '">' + text + '</a>';
+						// Process links in text.
+						text = linkify( text, { callback: function( text, href ) {
+							if ( href ) { // Link.
+								if ( href !== text ) text = '<a href="' + href + '" title="Link is ' + href + '">' + text + '</a>';
+								else text = '<a href="' + href + '">' + text + '</a>';
+							}
+							return text;
+						}});
+
+					    // Re-escape non-breaking spaces in text and return.
+					    return text.replace( / {2}/g, ' &nbsp;' );
+					})(args.description);
+
+					args.contents = this.templates[args.type].evaluate(args);
+
+					node.innerHTML = this.templates.row.evaluate(args);
+
+					if (args.current) {
+						fragment.appendChild(node);
+					} else {
+						$('history').appendChild(node);
+					}					
+				
 				}
-				return text;
-			}});
-
-		    // Re-escape non-breaking spaces in text and return.
-		    return text.replace( / {2}/g, ' &nbsp;' );
-		})(args.description);
+				
+				$('current').appendChild(fragment);
+			});
+		}
 		
-		args.contents = this.templates[args.type].evaluate(args);
-		
-		node.innerHTML = this.templates.row.evaluate(args);
-		
-		//APPEND NEW NODE
-		$(args.current?'current':'history').insert(node);
 		
 	},
 	e_removeFirstMessage: function () {
