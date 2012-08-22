@@ -76,30 +76,32 @@ StyleCore = {
 	},
 	e_appendMessage:function (event) {
 		var args = event.memo;
+		var that = this;
 
 		this.messageQueue.push(args);
 		if (!!this.messageQueueTask) {
-			this.messageQueueTask.reset()
+			this.messageQueueTask.cancel()
+			this.messageQueueTask.start();
 		} else {
-			this.messageQueueTask = Timed.after(300, function () {
+			this.messageQueueTask = Timed.after(75, function () {
 				var fragment = document.createDocumentFragment();
 				
-				while (this.messageQueue.length) {
-					args = this.messageQueue.shift();
+				while (that.messageQueue.length) {
+					args = that.messageQueue.shift();
 				
 					//BUILD MESSAGE NODE
 					var node = new Element('li');
 					node.id = args.id;
 				    node.className = [
 						args.type,
-						'usercolor-' + (args.nick_color && args.nick_userhost?this.hashColor(args.nick_userhost):args.nick_color),
+						'usercolor-' + (args.nick_color && args.nick_userhost?that.hashColor(args.nick_userhost):args.nick_color),
 						args.direction ? 'outgoing' : 'incoming',
 						args.highlight ? 'highlight' : 'nohighlight',
 						args.starred ? 'starred' : 'nostarred',
 						args.embed ? 'embed' : 'noembed',
 						args.unencrypted ? 'unencrypted' : '',
 
-						'grouping-' + (args.type === 'msgMessage' && (args.nick === this.last_message_nick ? 'next' : 'first')) ,
+						'grouping-' + (args.type === 'msgMessage' && (args.nick === that.last_message_nick ? 'next' : 'first')) ,
 
 						args.nick_userhost ? 'userhost' : 'server',
 						args.nick_userhost && Spotlight.isCurrent(args.nick_userhost) ? 'spotlight' : '',
@@ -109,8 +111,8 @@ StyleCore = {
 					node.setAttribute('data-nick', args.nick);
 					node.setAttribute('data-userhost', args.nick_userhost);
 
-					this.last_message_nick = args.type === 'msgMessage' ? args.nick : '';
-					this.last_message_node = node;
+					that.last_message_nick = args.type === 'msgMessage' ? args.nick : '';
+					that.last_message_node = node;
 
 					//PREPARE DESCRIPTION
 					args.description = (function (text) {
@@ -130,9 +132,9 @@ StyleCore = {
 					    return text.replace( / {2}/g, ' &nbsp;' );
 					})(args.description);
 
-					args.contents = this.templates[args.type].evaluate(args);
+					args.contents = that.templates[args.type].evaluate(args);
 
-					node.innerHTML = this.templates.row.evaluate(args);
+					node.innerHTML = that.templates.row.evaluate(args);
 
 					if (args.current) {
 						fragment.appendChild(node);
