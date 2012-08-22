@@ -145,6 +145,7 @@ StyleCore = {
 				}
 				
 				$('current').appendChild(fragment);
+				scrollToBottom();
 			});
 		}
 		
